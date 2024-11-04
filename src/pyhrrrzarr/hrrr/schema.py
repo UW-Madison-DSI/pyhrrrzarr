@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 
 type LevelType = Literal["sfc", "prs"]  # surface or pressure level
@@ -50,8 +50,6 @@ class VariableName(Enum):
     # REFD = 'REFD' # Reflectivity 4000m_Above_Ground
     # RELV_1hr_max_fcst = 'RELV_1hr_max_fcst' # Relative Vorticity 2000_0m_above_ground
     # RELV_max_fcst = 'RELV_max_fcst' # Relative Vorticity 2000_0m_above_ground
-    # RH = 'RH' # Relative Humidity 2m_above_ground
-    # RH = 'RH' # Relative Humidity at the highest tropospheric freezing level highest_tropospheric_freezing_level
     # TCDC = 'TCDC' # Total Cloud Cover boundary_layer_cloud_cover
     AOTK = 'AOTK' # Aeorosol Optical Thickness entire_atmosphere_single_layer
     APCP_1hr_acc_fcst = 'APCP_1hr_acc_fcst' # Total Precipitation UTC day surface
@@ -136,7 +134,7 @@ class VariableName(Enum):
     RELV_1hr_max_fcst = 'RELV_1hr_max_fcst' # Relative Vorticity 1000_0m_above_ground
     RELV_max_fcst = 'RELV_max_fcst' # Relative Vorticity 1000_0m_above_ground
     RETOP = 'RETOP' # Echo Top cloud_top
-    RH = 'RH' # Relative Humidity at the 0°C isotherm 0C_isotherm
+    RH = 'RH' 
     RHPW = 'RHPW' # Relative Humidity with Respect to Precipitable Water entire_atmosphere
     SBT113 = 'SBT113' # Simulated Brightness Temperature for GOES 11, Channel 3 top_of_atmosphere
     SBT114 = 'SBT114' # Simulated Brightness Temperature for GOES 11, Channel 4 top_of_atmosphere
@@ -270,6 +268,14 @@ VALID_LEVELS_FOR_VARIABLE_NAME = {
         Level._925MB,
         Level._1000MB,
     ],
+    VariableName.RH: [
+        Level._2M_ABOVE_GROUND,
+        Level._0C_ISOTHERM,
+        Level._HIGHEST_TROPOSPHERIC_FREEZING_LEVEL,
+    ],
+    VariableName.APCP_1hr_acc_fcst: [
+        Level._SURFACE,
+    ]
 }
 
 
@@ -287,17 +293,23 @@ VARIABLE_UNITS = {
 class HRRRVariable(BaseModel):
     name: VariableName = Field(default=None)
     level: Level
-    level_type: LevelType = 'sfc'
-    model_type: ModelType = 'anl'
-
+    type_level: LevelType = 'sfc'
+    type_model: ModelType = 'anl'
 
     @computed_field
     @property
     def units(self) -> str | None:
         return VARIABLE_UNITS.get(self.name, None)
     
+    @field_validator("level")
+    @classmethod
+    def check_valid_level(cls, v, values):
+        if v not in VALID_LEVELS_FOR_VARIABLE_NAME.get(values.data["name"], [v]):
+            raise ValueError(f"Invalid level {v} for variable name {values.data["name"]}. Valid levels are {VALID_LEVELS_FOR_VARIABLE_NAME.get(values.data['name'])}")
+        return v
+    
     def __repr__(self):
-        return f"{self.name.value}_{self.level.value}"
+        return f"{self.name.value}_{self.level.value}_{self.type_level}_{self.type_model}"
 
     def __str__(self):
         return self.__repr__()

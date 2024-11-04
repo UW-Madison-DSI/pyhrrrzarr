@@ -13,12 +13,12 @@ from pyhrrrzarr.hrrrzarr.projection import DEFAULT_PROJECTION
 class ZarrId(pydantic.BaseModel):
     """all identifiers necessary to describe and access relevant HRRRZarr Zarr array"""
     run_hour: datetime
-    level_type: LevelType
+    type_level: LevelType
     variable: HRRRVariable
-    model_type: ModelType 
+    type_model: ModelType 
 
     def format_chunk_id(self, chunk_id):
-        if self.model_type == "fcst":
+        if self.type_model == "fcst":
             # Extra id part since forecasts have an additional (time) dimension
             return "0." + str(chunk_id)
         else:
@@ -39,7 +39,7 @@ class Request(pydantic.BaseModel):
     def https_url(self) -> str:
         url = "https://hrrrzarr.s3.amazonaws.com"
         url += self.zarr_id.run_hour.strftime(
-        f"/{self.zarr_id.level_type}/%Y%m%d/%Y%m%d_%Hz_{self.zarr_id.model_type}.zarr/")
+        f"/{self.zarr_id.type_level}/%Y%m%d/%Y%m%d_%Hz_{self.zarr_id.type_model}.zarr/")
         url += f"{self.zarr_id.variable.name.value}/{self.zarr_id.variable.name.value}/{self.zarr_id.variable.level.value}/{self.zarr_id.variable.name.value}"
         url += f"/{self.chunk_id()}"
         return url
@@ -47,7 +47,7 @@ class Request(pydantic.BaseModel):
     def create_s3_group_url(self, prefix=True):
         url = "s3://hrrrzarr/" if prefix else "" # Skip when using boto3
         url += self.zarr_id.run_hour.strftime(
-            f"{self.zarr_id.level_type}/%Y%m%d/%Y%m%d_%Hz_{self.zarr_id.model_type}.zarr/")
+            f"{self.zarr_id.type_level}/%Y%m%d/%Y%m%d_%Hz_{self.zarr_id.type_model}.zarr/")
         url += f"{self.zarr_id.variable.level.value}/{self.zarr_id.variable.name.value}"
         return url
     
@@ -90,7 +90,7 @@ class Request(pydantic.BaseModel):
         :return:
         """
         nearest_point = self.get_nearest_point()
-        if self.zarr_id.model_type == "fcst":
+        if self.zarr_id.type_model == "fcst":
             self.value = chunk_data[:, nearest_point.in_chunk_y.values, nearest_point.in_chunk_x.values]
         else:
             self.value =  chunk_data[nearest_point.in_chunk_y.values, nearest_point.in_chunk_x.values]

@@ -35,7 +35,7 @@ def decompress_chunk(zarr_id: ZarrId, compressed_data: bytes) -> np.ndarray:
 
     chunk = np.frombuffer(buffer, dtype=dtype)
 
-    if zarr_id.model_type == "anl":
+    if zarr_id.type_model == "anl":
         data_array = np.reshape(chunk, (150, 150))
     else:
         entry_size = 22500

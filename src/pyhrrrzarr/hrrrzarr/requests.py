@@ -29,9 +29,9 @@ def create_requests(
             zarr_ids.append(
                     ZarrId(
                         run_hour=hour,
-                        level_type=variable.level_type,
+                        type_level=variable.type_level,
                         variable=variable,
-                        model_type=variable.model_type, 
+                        type_model=variable.type_model, 
                     )
             )
 

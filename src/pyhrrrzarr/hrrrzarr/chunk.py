@@ -1,12 +1,11 @@
-import functools
 import os
+import functools
 
 import s3fs
 import xarray as xr
 from pathlib import Path
 import cartopy.crs as ccrs
 from dotenv import load_dotenv
-
 
 from pyhrrrzarr.schema import Location
 from pyhrrrzarr.hrrrzarr.fs import DEFAULT_FS
@@ -55,21 +54,3 @@ def get_nearest_point(
         chunk_index = get_chunk_index()
     x, y = projection.transform_point(location.lon, location.lat, ccrs.PlateCarree())
     return chunk_index.sel(x=x, y=y, method="nearest")
-
-
-# def get_value(request: Request, chunk_data: np.ndarray) -> np.ndarray | None:
-#         #zarr_id: ZarrId, chunk_id: str, nearest_point: xr.Dataset) -> np.ndarray | None:
-
-#     """
-#     fetch zarr_id @ chunk form s3, decompress, return nearest valye to your nearest point
-#     :param zarr_id: hrrr defining
-#     :param chunk_id:
-#     :param nearest_point:
-#     :return:
-#     """
-#     nearest_point = get_nearest_point(request.location)
-#     chunk_data = decompress_chunk(zarr_id, compressed_data)
-#     if zarr_id.model_type == "fcst":
-#         return chunk_data[:, nearest_point.in_chunk_y.values, nearest_point.in_chunk_x.values]
-#     else:
-#         return chunk_data[nearest_point.in_chunk_y.values, nearest_point.in_chunk_x.values]
