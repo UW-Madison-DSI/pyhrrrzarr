@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime
 
 
-from pyhrrrzarr.schema import Location, ZarrId, Request
+from pyhrrrzarr.schema import Location
 from pyhrrrzarr.hrrr.schema import HRRRVariable
 from pyhrrrzarr.hrrrzarr.chunk import get_chunk_index, get_nearest_point
 

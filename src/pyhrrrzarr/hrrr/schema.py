@@ -1,6 +1,11 @@
 from enum import Enum
-from typing import Annotated
+from typing import Literal
+
 from pydantic import BaseModel, Field, computed_field
+
+
+type LevelType = Literal["sfc", "prs"]  # surface or pressure level
+type ModelType = Literal["anl", "fcst"]  # analysis or forecast
 
 
 class VariableName(Enum):
@@ -269,6 +274,7 @@ VALID_LEVELS_FOR_VARIABLE_NAME = {
 
 
 VARIABLE_UNITS = {
+    VariableName.APCP_1hr_acc_fcst: 'kg/m^2',
     VariableName.APCP_acc_fcst: 'kg/m^2',
     VariableName.DPT: 'K',
     VariableName.RH: '%',
@@ -281,6 +287,9 @@ VARIABLE_UNITS = {
 class HRRRVariable(BaseModel):
     name: VariableName = Field(default=None)
     level: Level
+    level_type: LevelType = 'sfc'
+    model_type: ModelType = 'anl'
+
 
     @computed_field
     @property

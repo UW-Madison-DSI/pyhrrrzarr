@@ -2,19 +2,12 @@ import pydantic
 import numpy as np
 import xarray as xr
 from datetime import datetime
-from typing import Literal
 import cartopy.crs as ccrs
 
 from pyhrrrzarr.schema import Location
-from pyhrrrzarr.hrrr.schema import HRRRVariable
+from pyhrrrzarr.hrrr.schema import HRRRVariable, LevelType, ModelType
 from pyhrrrzarr.hrrrzarr.chunk import get_nearest_point, get_chunk_index
 from pyhrrrzarr.hrrrzarr.projection import DEFAULT_PROJECTION
-
-from typing import Literal
-
-
-type LevelType = Literal["sfc", "prs"]  # surface or pressure level
-type ModelType = Literal["anl", "fcst"]  # analysis or forecast
 
 
 class ZarrId(pydantic.BaseModel):
