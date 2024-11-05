@@ -1,6 +1,8 @@
 import os
 import asyncio
 from tqdm.asyncio import tqdm_asyncio
+import multiprocessing
+import concurrent.futures
 from tqdm.auto import tqdm
 import aiofiles as aiof
 from pathlib import Path
@@ -48,6 +50,22 @@ async def hrrr_fetch(r: Request) -> tuple[Request, bytes | None]:
     return r, result
 
 
+
+def decompress_one_chunk(request_compressed_bytes_tuple: tuple[Request, bytes]) -> None:
+    """
+    decompress one chunk
+    """
+
+    request, compressed_bytes = request_compressed_bytes_tuple
+    try:
+        arr = decompress_chunk(request.zarr_id, compressed_bytes)
+        request.get_value(arr)
+    except Exception as e:
+        logger.error(f"Failed to decompress chunk {request}: {e}")
+    
+    return request
+
+
 async def get_all_request_values(requests: list[Request], batch_size: int = 500) -> None:
     """
     get all values for all requests
@@ -72,8 +90,12 @@ async def get_all_request_values(requests: list[Request], batch_size: int = 500)
         requests_and_compressed_bytes.extend(batch_requests_and_compressed_bytes)    
         pbar.update(len(request_batch))
     
-    for request, compressed_bytes in requests_and_compressed_bytes:
-        if not compressed_bytes:
-            continue
-        arr = decompress_chunk(request.zarr_id, compressed_bytes)
-        request.get_value(arr)
+    l = len(requests_and_compressed_bytes)
+    updated_requests = []
+    with tqdm(total=l, desc="decompressing") as pbar:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = [executor.submit(decompress_one_chunk, arg) for arg in requests_and_compressed_bytes]
+            for future in concurrent.futures.as_completed(futures):
+                updated_requests.append(future.result())
+                pbar.update(1)
+    return updated_requests

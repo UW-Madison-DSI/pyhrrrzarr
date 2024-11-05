@@ -26,20 +26,24 @@ def retrieve_object(s3_url: str, s3: boto3.resources.base.ServiceResource | None
     return result
 
 
-def decompress_chunk(zarr_id: ZarrId, compressed_data: bytes) -> np.ndarray:
-    buffer = ncd.blosc.decompress(compressed_data)
+def decompress_chunk(zarr_id: ZarrId, compressed_data: bytes) -> np.ndarray | None:
+    try:
+        buffer = ncd.blosc.decompress(compressed_data)
 
-    dtype = "<f2"
-    if zarr_id.variable.level.name == "surface" and zarr_id.variable.name.value == "PRES":
-        dtype = "<f4"
+        dtype = "<f2"
+        if zarr_id.variable.level.name == "surface" and zarr_id.variable.name.value == "PRES":
+            dtype = "<f4"
 
-    chunk = np.frombuffer(buffer, dtype=dtype)
+        chunk = np.frombuffer(buffer, dtype=dtype)
 
-    if zarr_id.type_model == "anl":
-        data_array = np.reshape(chunk, (150, 150))
-    else:
-        entry_size = 22500
-        data_array = np.reshape(chunk, (len(chunk) // entry_size, 150, 150))
+        if zarr_id.type_model == "anl":
+            data_array = np.reshape(chunk, (150, 150))
+        else:
+            entry_size = 22500
+            data_array = np.reshape(chunk, (len(chunk) // entry_size, 150, 150))
+    except Exception as e:
+        logging.error(f"Failed to decompress chunk {zarr_id}: {e}")
+        data_array = None
 
     return data_array
 
