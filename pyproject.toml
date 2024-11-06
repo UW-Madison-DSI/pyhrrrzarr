@@ -45,3 +45,6 @@ test = { features = ["test"], solve-group = "default" }
 
 [tool.pixi.feature.test.tasks]
 test = "pytest"
+
+[tool.pytest.ini_options]
+testpaths = ["tests/integration", "tests/unit"]

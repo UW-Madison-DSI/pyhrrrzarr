@@ -3073,7 +3073,7 @@ packages:
   name: pyhrrrzarr
   version: 0.1.0
   path: .
-  sha256: 942478a4c8e64965d678185c17fb1141abf8dd70e9cc59f76f9bf98d862039ca
+  sha256: cc485a931c4eacd1a9d0b1b19004fa44db3cf1eee719437e5a96d67eb71b51f7
   requires_dist:
   - nest-asyncio
   - pytest ; extra == 'test'
