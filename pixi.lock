@@ -3073,8 +3073,9 @@ packages:
   name: pyhrrrzarr
   version: 0.1.0
   path: .
-  sha256: 211fa3f53b617d3efd6b91e494e6251a44b64b0494e20f96fe01f43f57084541
+  sha256: 942478a4c8e64965d678185c17fb1141abf8dd70e9cc59f76f9bf98d862039ca
   requires_dist:
+  - nest-asyncio
   - pytest ; extra == 'test'
   requires_python: '>=3.11'
   editable: true

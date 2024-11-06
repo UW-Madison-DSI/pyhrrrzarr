@@ -1,6 +1,6 @@
 [project]
 authors = [{name = "ilmcconnell", email = "iain.mcconnell@gmail.com"}]
-dependencies = []
+dependencies = ["nest-asyncio"]
 description = "Add a short description here"
 name = "pyhrrrzarr"
 requires-python = ">= 3.11"
