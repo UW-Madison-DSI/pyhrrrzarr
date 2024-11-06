@@ -1,5 +1,6 @@
 import logging
-import asyncio
+from datetime import datetime
+
 import numpy as np
 import boto3
 from botocore import UNSIGNED
@@ -27,10 +28,17 @@ def retrieve_object(s3_url: str, s3: boto3.resources.base.ServiceResource | None
 
 
 def decompress_chunk(zarr_id: ZarrId, compressed_data: bytes) -> np.ndarray | None:
+    """
+    decompress one hrrrzarr chunk and reshape decompressed arr:
+        analysis will be [150 x 150]
+        forecast will be [entries x 150 x 150]
+    """
     try:
         buffer = ncd.blosc.decompress(compressed_data)
 
         dtype = "<f2"
+        if zarr_id.run_hour >= datetime.strptime("2024-06-01_00z", "%Y-%m-%d_%Hz"):
+            dtype = "<f4"
         if zarr_id.variable.level.name == "surface" and zarr_id.variable.name.value == "PRES":
             dtype = "<f4"
 
