@@ -1,7 +1,11 @@
+import logging
 import numpy as np
 import pandas as pd
 
 from pyhrrrzarr.hrrrzarr.schema import Request
+
+
+logger = logging.getLogger(__name__)
 
 
 def requests_to_df(requests: list[Request]) -> pd.DataFrame:
@@ -29,6 +33,7 @@ def requests_to_df(requests: list[Request]) -> pd.DataFrame:
             "value": request_value,
             "units": r.zarr_id.variable.units,
         })
+    logger.info(f"Converted {len(data)} requests to DataFrame rows")
     return pd.DataFrame(data)
 
 
@@ -57,4 +62,5 @@ def add_wind_speed_and_direction(df: pd.DataFrame) -> pd.DataFrame:
     )
     wind_dir_df["var_name"] = "WIND_DIR"
     wind_dir_df["units"] = "degrees"
+    logger.info(f"Added {len(wind_speed_df)} wind speed and {len(wind_dir_df)} wind direction rows")
     return pd.concat([df, wind_speed_df, wind_dir_df], ignore_index=True)

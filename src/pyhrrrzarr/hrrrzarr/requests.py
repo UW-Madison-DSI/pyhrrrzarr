@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -5,6 +6,9 @@ from datetime import datetime, timedelta
 from pyhrrrzarr.schema import Location
 from pyhrrrzarr.hrrr.schema import HRRRVariable
 from pyhrrrzarr.hrrrzarr.schema import ZarrId, Request
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_requests(
@@ -45,5 +49,5 @@ def create_requests(
                     location=location,
                 )
             )
-    
+    logging.info(f"Created {len(requests)} requests")
     return requests
