@@ -95,3 +95,51 @@ class Request(pydantic.BaseModel):
         else:
             self.value =  chunk_data[nearest_point.in_chunk_y.values, nearest_point.in_chunk_x.values]
         return self.value
+    
+
+class RequestWholeChunk(pydantic.BaseModel):
+    """Request schema"""
+    zarr_id: ZarrId
+    chunk_id_str: str
+    value: float | None = None
+
+    def chunk_id(self) -> list[str]:
+        return self.zarr_id.format_chunk_id(self.chunk_id_str)
+    
+    def https_url(self) -> str:
+        url = "https://hrrrzarr.s3.amazonaws.com"
+        url += self.zarr_id.run_hour.strftime(
+        f"/{self.zarr_id.type_level}/%Y%m%d/%Y%m%d_%Hz_{self.zarr_id.type_model}.zarr/")
+        url += f"{self.zarr_id.variable.name.value}/{self.zarr_id.variable.name.value}/{self.zarr_id.variable.level.value}/{self.zarr_id.variable.name.value}"
+        url += f"/{self.chunk_id()}"
+        return url
+    
+    def create_s3_group_url(self, prefix=True):
+        url = "s3://hrrrzarr/" if prefix else "" # Skip when using boto3
+        url += self.zarr_id.run_hour.strftime(
+            f"{self.zarr_id.type_level}/%Y%m%d/%Y%m%d_%Hz_{self.zarr_id.type_model}.zarr/")
+        url += f"{self.zarr_id.variable.level.value}/{self.zarr_id.variable.name.value}"
+        return url
+    
+    def create_s3_subgroup_url(self, prefix=True):
+        url = self.create_s3_group_url(prefix)
+        url += f"/{self.zarr_id.variable.level.value}"
+        return url
+    
+    def create_s3_chunk_url(self, prefix=False):
+        url = self.create_s3_subgroup_url(prefix)
+        url += f"/{self.zarr_id.variable.name.value}/{self.chunk_id()}"
+        return url
+    
+    def get_value(self, chunk_data: np.ndarray) -> np.ndarray | None:
+        """
+        fetch zarr_id @ chunk from s3, decompress, return whole chunk
+        :param chunk_data: hrrr chunk data
+        :return: hrrr chunk data
+        """
+        # nearest_point = self.get_nearest_point()
+        if self.zarr_id.type_model == "fcst":
+            self.value = chunk_data[:, ...]
+        else:
+            self.value = chunk_data
+        return self.value
